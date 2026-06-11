@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "CCL Site",
+      "runtimeExecutable": "ruby",
+      "runtimeArgs": ["-run", "-e", "httpd", "--", "-p", "8787", "/tmp/ccl_preview"],
+      "port": 8787
+    }
+  ]
+}

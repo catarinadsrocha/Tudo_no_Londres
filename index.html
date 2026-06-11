@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tudo no Londres</title>
+  <style>
+    @font-face { font-family: 'Cakra'; src: url('fonts/Cakra-Normal.otf'); }
+    @font-face { font-family: 'Nultien'; src: url('fonts/Nultien-Regular.otf'); font-weight: 400; }
+    @font-face { font-family: 'Nultien'; src: url('fonts/Nultien-Bold.otf'); font-weight: 700; }
+    @font-face { font-family: 'Satoshi'; src: url('fonts/Satoshi-Regular.otf'); font-weight: 400; }
+    @font-face { font-family: 'Satoshi'; src: url('fonts/Satoshi-Bold.otf'); font-weight: 700; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root { --red: #E8001C; }
+
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+
+    body {
+      background-color: #F2F0EB;
+      background-image: url('assets/fundo textura.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      font-family: 'Nultien', sans-serif;
+      color: var(--red);
+    }
+
+    .view {
+      position: fixed;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      z-index: 1;
+    }
+    .view.active { display: flex; }
+
+    /* ── Shared bottom nav ── */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 0 36px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      z-index: 20;
+    }
+    .bottom-nav button {
+      font-family: 'Nultien', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--red);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+    }
+    .bottom-nav button:hover { opacity: 0.55; }
+    .landing-nav button { font-family: 'Satoshi', sans-serif; text-decoration: underline; text-underline-offset: 4px; }
+
+    /* ════════════════════════════════
+       LANDING
+    ════════════════════════════════ */
+    #view-landing { background: transparent; }
+
+    .landing-header {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      padding: 22px 28px 0;
+      z-index: 5;
+    }
+    .landing-header span {
+      font-family: 'Nultien', sans-serif;
+      font-weight: 400;
+      font-size: clamp(24px, 5vw, 72px);
+      color: var(--red);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .landing-header span:nth-child(2) { text-align: center; }
+    .landing-header span:nth-child(3) { text-align: right; }
+
+
+    .landing-hero-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 4;
+    }
+    .landing-hero {
+      width: clamp(200px, 28vw, 420px);
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ════════════════════════════════
+       GALERIA MENU
+    ════════════════════════════════ */
+    #view-galeria-menu {
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+    .galeria-menu-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 26px;
+      position: relative;
+      z-index: 5;
+    }
+    .galeria-menu-title {
+      font-family: 'Nultien', sans-serif;
+      font-weight: 400;
+      font-size: clamp(18px, 2.2vw, 32px);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .galeria-menu-inner a {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 14px;
+      color: var(--red);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+    }
+    .galeria-menu-inner a:hover { opacity: 0.55; }
+
+    /* ════════════════════════════════
+       PHOTO VIEWER
+    ════════════════════════════════ */
+    #view-photo { justify-content: space-between; }
+
+    .viewer-top {
+      position: relative;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 22px 28px 0;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .vt-btn {
+      font-family: 'Nultien', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      cursor: pointer;
+      min-width: 48px;
+      flex-shrink: 0;
+    }
+    .vt-btn.right { text-align: right; }
+    .vt-btn:hover { opacity: 0.55; }
+
+    .viewer-top-nums {
+      display: flex;
+      gap: 52px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+      flex: 1;
+      padding: 0 16px;
+    }
+    .viewer-top-nums span {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      color: var(--red);
+      opacity: 0.35;
+      transition: opacity 0.15s;
+    }
+    .viewer-top-nums span:hover { opacity: 0.8; }
+    .viewer-top-nums span.current { opacity: 1; }
+
+    @media (max-width: 768px) {
+      .viewer-top-nums {
+        gap: 20px;
+        row-gap: 10px;
+        padding: 0 10px;
+      }
+      .viewer-top-nums span {
+        font-size: 11px;
+      }
+    }
+
+    .viewer-img-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+    .viewer-img-wrap img {
+      max-width: 62vw;
+      max-height: 70vh;
+      object-fit: contain;
+      display: block;
+    }
+
+    .viewer-bottom {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 28px 28px;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .vb-nav {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      min-width: 48px;
+      color: var(--red);
+    }
+    .vb-nav:hover { opacity: 0.55; }
+    .vb-nav.right { text-align: right; }
+    .vb-nav.hidden { visibility: hidden; }
+    .viewer-section-label {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 15px;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      letter-spacing: 0.01em;
+      color: var(--red);
+    }
+
+    /* ════════════════════════════════
+       GRID VIEWER
+    ════════════════════════════════ */
+    #view-grid { justify-content: flex-start; }
+
+    .grid-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 22px 28px 0;
+      z-index: 10;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .grid-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 28px 90px;
+      position: relative;
+      z-index: 5;
+    }
+    .grid-scroll::-webkit-scrollbar { width: 3px; }
+    .grid-scroll::-webkit-scrollbar-thumb { background: rgba(232,0,28,0.3); border-radius: 2px; }
+
+    .grid-section-block { margin-bottom: 36px; }
+
+    .grid-section-heading {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      color: var(--red);
+      opacity: 0.6;
+      margin-bottom: 12px;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+    .grid-section-heading:hover { opacity: 1; }
+
+    .grid-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 14px 18px;
+    }
+    .grid-item {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+    }
+    .grid-item img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      display: block;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .grid-item img:hover { opacity: 0.75; }
+    .grid-item img.unseen {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .grid-num {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--red);
+    }
+    .grid-num.unseen { opacity: 0.2; }
+
+    .grid-bottom {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 28px 28px;
+      z-index: 20;
+    }
+    .grid-counter {
+      font-family: 'Nultien', sans-serif;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      color: var(--red);
+      opacity: 0.6;
+    }
+
+    /* ════════════════════════════════
+       DOCUMENTÁRIO
+    ════════════════════════════════ */
+    #view-documentario {
+      align-items: center;
+      justify-content: center;
+    }
+    .doc-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+    }
+
+    /* Container that wraps video + overlay controls */
+    .doc-player {
+      position: relative;
+      max-width: 78vw;
+      max-height: 78vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .doc-player video {
+      display: block;
+      max-width: 78vw;
+      max-height: 78vh;
+      cursor: pointer;
+    }
+
+    /* Big play button — follows cursor */
+    .doc-play-center {
+      position: absolute;
+      top: 0; left: 0;
+      transform: translate(-50%, -50%);
+      color: #fff;
+      cursor: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .doc-player:hover .doc-play-center { opacity: 1; }
+    .doc-player:hover { cursor: none; }
+    .doc-player:hover video { cursor: none; }
+
+    /* Fullscreen: no borders, controls overlaid */
+    .doc-player:fullscreen,
+    .doc-player:-webkit-full-screen {
+      background: #000;
+      width: 100vw;
+      height: 100vh;
+      max-width: 100vw;
+      max-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .doc-player:fullscreen video,
+    .doc-player:-webkit-full-screen video {
+      width: 100%; height: 100%;
+      max-width: 100%; max-height: 100%;
+      object-fit: contain;
+    }
+    .doc-player:fullscreen .doc-overlay,
+    .doc-player:-webkit-full-screen .doc-overlay {
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .doc-player:fullscreen:hover .doc-overlay,
+    .doc-player:-webkit-full-screen:hover .doc-overlay {
+      opacity: 1;
+    }
+    /* Idle state — hide cursor and controls */
+    .doc-player.idle,
+    .doc-player:fullscreen.idle,
+    .doc-player:-webkit-full-screen.idle {
+      cursor: none !important;
+    }
+    .doc-player.idle video,
+    .doc-player:fullscreen.idle video,
+    .doc-player:-webkit-full-screen.idle video {
+      cursor: none !important;
+    }
+    .doc-player.idle .doc-overlay,
+    .doc-player:fullscreen.idle .doc-overlay,
+    .doc-player:-webkit-full-screen.idle .doc-overlay {
+      opacity: 0 !important;
+    }
+    .doc-player.idle .doc-play-center,
+    .doc-player:fullscreen.idle .doc-play-center,
+    .doc-player:-webkit-full-screen.idle .doc-play-center {
+      opacity: 0 !important;
+    }
+
+    /* Hide floating play icon when hovering controls */
+    .doc-player.controls-hover .doc-play-center {
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+
+    /* Bottom overlay bar */
+    .doc-overlay {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 10px 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .doc-player:hover .doc-overlay { opacity: 1; }
+
+    /* Fullscreen: controls still visible */
+    .doc-player:fullscreen .doc-overlay,
+    .doc-player:-webkit-full-screen .doc-overlay { opacity: 1; }
+    .doc-player:fullscreen:not(:hover) .doc-overlay,
+    .doc-player:-webkit-full-screen:not(:hover) .doc-overlay { opacity: 0; }
+    .doc-player:fullscreen:hover .doc-overlay,
+    .doc-player:-webkit-full-screen:hover .doc-overlay { opacity: 1; }
+
+    .doc-progress-wrap {
+      width: 100%;
+      height: 1px;
+      background: rgba(255,255,255,0.3);
+      cursor: pointer;
+      position: relative;
+    }
+    .doc-progress-wrap::before {
+      content: '';
+      position: absolute;
+      left: 0; right: 0;
+      top: -8px; bottom: -8px;
+    }
+    .doc-progress-wrap:hover { height: 2px; }
+    .doc-progress-fill {
+      height: 100%;
+      background: #fff;
+      width: 0%;
+      pointer-events: none;
+    }
+
+    .doc-bottom-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .doc-btn {
+      font-family: 'Nultien', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #fff;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .doc-btn:hover { opacity: 0.6; }
+    .doc-time {
+      font-family: 'Nultien', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: #fff;
+      opacity: 0.7;
+    }
+
+    /* ════════════════════════════════
+       SOBRE
+    ════════════════════════════════ */
+    #view-sobre {
+      align-items: center;
+      justify-content: center;
+    }
+    .sobre-inner {
+      max-width: 560px;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      z-index: 5;
+    }
+    .sobre-title {
+      font-family: 'Nultien', sans-serif;
+      font-weight: 400;
+      font-size: 13px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .sobre-text {
+      font-family: 'Satoshi', sans-serif;
+      font-size: 16px;
+      line-height: 1.75;
+      color: var(--red);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════ LANDING ════ -->
+  <div id="view-landing" class="view active">
+    <div class="landing-header">
+      <span>Centro</span>
+      <span>Comercial</span>
+      <span>Londres</span>
+    </div>
+    <div class="landing-hero-wrap">
+<img class="landing-hero" src="assets/sequencia02.jpg" alt="">
+    </div>
+    <nav class="bottom-nav landing-nav">
+      <button onclick="showView('galeria-menu')">Galeria</button>
+      <button onclick="showView('documentario')">Documentário</button>
+      <button onclick="showView('sobre')">Sobre</button>
+    </nav>
+  </div>
+
+  <!-- ════ GALERIA MENU ════ -->
+  <div id="view-galeria-menu" class="view">
+    <div class="vt-btn" style="position:absolute;top:22px;left:28px;z-index:10;cursor:pointer;" onclick="showView('landing')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="galeria-menu-inner">
+      <div class="galeria-menu-title">Galeria</div>
+      <a onclick="openSection('espaco-comum')">Espaço comum</a>
+      <a onclick="openSection('lado-fora')">Do lado de fora</a>
+      <a onclick="openSection('por-dentro')">Por dentro</a>
+      <a onclick="openSection('oficio')">Ofício</a>
+    </div>
+    <nav class="bottom-nav landing-nav">
+      <button onclick="showView('galeria-menu')" style="font-weight:700;">Galeria</button>
+      <button onclick="showView('documentario')">Documentário</button>
+      <button onclick="showView('sobre')">Sobre</button>
+    </nav>
+  </div>
+
+  <!-- ════ PHOTO VIEWER ════ -->
+  <div id="view-photo" class="view">
+    <div class="viewer-top">
+      <div class="vt-btn" onclick="exitViewer()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="viewer-top-nums" id="photo-top-nums"></div>
+      <div class="vt-btn right" onclick="showGrid()">Grid</div>
+    </div>
+    <div class="viewer-img-wrap">
+      <img id="photo-img" src="" alt="">
+    </div>
+    <div class="viewer-bottom">
+      <div class="vb-nav" id="photo-prev" onclick="photoPrev()"></div>
+      <div class="viewer-section-label" id="photo-label"></div>
+      <div class="vb-nav right" id="photo-next" onclick="photoNext()"></div>
+    </div>
+  </div>
+
+  <!-- ════ GRID VIEWER ════ -->
+  <div id="view-grid" class="view">
+    <div class="grid-top">
+      <div class="vt-btn" onclick="exitViewer()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <span></span>
+      <div class="vt-btn right" onclick="showPhoto()">Foto</div>
+    </div>
+    <div class="grid-scroll" id="grid-scroll-inner"></div>
+    <div class="grid-bottom">
+      <span></span>
+      <div class="grid-counter" id="grid-counter"></div>
+      <span></span>
+    </div>
+  </div>
+
+  <!-- ════ DOCUMENTÁRIO ════ -->
+  <div id="view-documentario" class="view">
+    <div class="vt-btn" style="position:absolute;top:22px;left:28px;z-index:10;cursor:pointer;" onclick="showView('landing')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="doc-wrap">
+      <div class="doc-player paused" id="doc-player">
+        <video id="doc-video" src="assets/documentario.mp4"></video>
+        <div class="doc-play-center" id="doc-play-center">
+          <svg id="icon-center" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="6,3 20,12 6,21" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="doc-overlay">
+          <div class="doc-progress-wrap" id="doc-progress-wrap">
+            <div class="doc-progress-fill" id="doc-progress-fill"></div>
+          </div>
+          <div class="doc-bottom-bar">
+            <button class="doc-btn" id="doc-play-btn" onclick="event.stopPropagation();docToggle()">
+              <svg id="icon-bar" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="6,3 20,12 6,21" fill="currentColor"/>
+              </svg>
+            </button>
+            <span class="doc-time" id="doc-time">0:00 / 0:00</span>
+            <button class="doc-btn" onclick="docFullscreen(event)" style="display:flex;align-items:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm16 4h-4v2h6v-6h-2v4z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="bottom-nav landing-nav" style="z-index:20;">
+      <button onclick="showView('galeria-menu')">Galeria</button>
+      <button onclick="showView('documentario')" style="font-weight:700;">Documentário</button>
+      <button onclick="showView('sobre')">Sobre</button>
+    </nav>
+  </div>
+
+  <!-- ════ SOBRE ════ -->
+  <div id="view-sobre" class="view">
+    <div class="vt-btn" style="position:absolute;top:22px;left:28px;z-index:10;cursor:pointer;" onclick="showView('landing')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="sobre-inner">
+      <div class="sobre-title">Sobre</div>
+      <p class="sobre-text">
+        Centro Comercial Londres é um arquivo fotográfico e documental de um espaço comercial em declínio. Este projeto reúne imagens dos seus corredores, montras, lojas e lojistas — registos de uma memória que resiste ao tempo.
+      </p>
+      <p class="sobre-text">
+        A galeria está organizada em quatro séries: <em>Espaço Comum</em>, <em>Do Lado de Fora</em>, <em>Por Dentro</em> e <em>Ofício</em>. Em conjunto, constroem um retrato de um lugar e das pessoas que o habitam.
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // Limpar progresso ao carregar a página
+    Object.keys(sessionStorage).filter(k => k.startsWith('v_')).forEach(k => sessionStorage.removeItem(k));
+
+    const SECTIONS = {
+      'espaco-comum': {
+        name: 'Espaço comum',
+        folder: 'assets/Espaço Comum (corredores)',
+        images: ['Ce01.jpg','Ce02.jpg','Ce03.jpg','Ce04.jpg','C05.jpg','Ce06.jpg','Ce07.jpg','Ce08.jpg','Ce09.jpg','Ce10.jpg','Ce11.jpg','Ce12.jpg','Ce13.jpg','Ce14.jpg']
+      },
+      'lado-fora': {
+        name: 'Do lado de fora',
+        folder: 'assets/Do lado de Fora(Montras e letreiros)',
+        images: ['MLe01.jpg','MLe02.jpg','MLe03.jpg','MLe04.jpg','MLe05.jpg','MLe06.jpg','MLe07.jpg','MLe08.jpg','MLe09.jpg','MLe10.jpg','MLe11.jpg','MLe12.jpg','MLe13.jpg','MLe14.jpg']
+      },
+      'por-dentro': {
+        name: 'Por dentro',
+        folder: 'assets/Por dentro (lojas)',
+        images: ['lj1.jpg','lj2.jpg','lj3.jpg','lj4.jpg','lj5.jpg','lj6.jpg','lj7.jpg','lj8.jpg','lj9.jpg','lj10.jpg','lj11.jpg','lj12.jpg','lj13.jpg','lj14.jpg','lj15.jpg','lj16.jpg','lj17.jpg','lj18.jpg']
+      },
+      'oficio': {
+        name: 'Ofício',
+        folder: 'assets/Ofício(Lojistas)',
+        images: ['tl01.jpg','tl02.jpg','tl03.jpg','tl04.jpg']
+      }
+    };
+
+    let currentSection = null;
+    let currentIndex = 0;
+
+    function getViewed(id) {
+      try { return JSON.parse(sessionStorage.getItem('v_' + id) || '[]'); } catch { return []; }
+    }
+    function markViewed(id, idx) {
+      const v = getViewed(id);
+      if (!v.includes(idx)) { v.push(idx); sessionStorage.setItem('v_' + id, JSON.stringify(v)); }
+    }
+
+    function showView(id) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.getElementById('view-' + id).classList.add('active');
+      if (id !== 'documentario') {
+        const vid = document.getElementById('doc-video');
+        if (vid) vid.pause();
+      }
+    }
+
+    function openSection(sectionId) {
+      currentSection = sectionId;
+      currentIndex = 0;
+      markViewed(sectionId, 0);
+      renderPhoto();
+      showView('photo');
+    }
+
+    function exitViewer() { showView('galeria-menu'); }
+
+    function renderPhoto() {
+      const sec = SECTIONS[currentSection];
+      const imgs = sec.images;
+
+      document.getElementById('photo-img').src = sec.folder + '/' + imgs[currentIndex];
+      document.getElementById('photo-label').textContent = sec.name;
+
+      // Top number chips
+      const numsEl = document.getElementById('photo-top-nums');
+      numsEl.innerHTML = '';
+      imgs.forEach((_, i) => {
+        const s = document.createElement('span');
+        s.textContent = '(' + String(i + 1).padStart(2, '0') + ')';
+        if (i === currentIndex) s.classList.add('current');
+        s.addEventListener('click', () => { currentIndex = i; markViewed(currentSection, i); renderPhoto(); });
+        numsEl.appendChild(s);
+      });
+
+      // Prev / Next
+      const prev = document.getElementById('photo-prev');
+      const next = document.getElementById('photo-next');
+      const arrowL = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      const arrowR = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      if (currentIndex > 0) { prev.innerHTML = arrowL; prev.classList.remove('hidden'); }
+      else { prev.innerHTML = ''; prev.classList.add('hidden'); }
+      if (currentIndex < imgs.length - 1) { next.innerHTML = arrowR; next.classList.remove('hidden'); }
+      else { next.innerHTML = ''; next.classList.add('hidden'); }
+    }
+
+    function photoPrev() {
+      if (currentIndex > 0) { currentIndex--; markViewed(currentSection, currentIndex); renderPhoto(); }
+    }
+    function photoNext() {
+      if (currentIndex < SECTIONS[currentSection].images.length - 1) {
+        currentIndex++; markViewed(currentSection, currentIndex); renderPhoto();
+      }
+    }
+
+    function showGrid() { renderGrid(); showView('grid'); }
+    function showPhoto() { renderPhoto(); showView('photo'); }
+
+    function renderGrid() {
+      const container = document.getElementById('grid-scroll-inner');
+      container.innerHTML = '';
+
+      let totalSeen = 0;
+      let totalAll = 0;
+
+      Object.entries(SECTIONS).forEach(([secId, sec]) => {
+        const viewed = getViewed(secId);
+        totalSeen += viewed.length;
+        totalAll += sec.images.length;
+
+        const block = document.createElement('div');
+        block.className = 'grid-section-block';
+
+        const heading = document.createElement('div');
+        heading.className = 'grid-section-heading';
+        heading.textContent = sec.name;
+        heading.style.cursor = 'pointer';
+        heading.addEventListener('click', () => {
+          currentSection = secId;
+          currentIndex = 0;
+          markViewed(secId, 0);
+          showPhoto();
+        });
+        block.appendChild(heading);
+
+        const grid = document.createElement('div');
+        grid.className = 'grid-images';
+
+        sec.images.forEach((img, i) => {
+          const seen = viewed.includes(i);
+          const item = document.createElement('div');
+          item.className = 'grid-item';
+
+          const imgEl = document.createElement('img');
+          imgEl.src = sec.folder + '/' + img;
+          if (!seen) {
+            imgEl.classList.add('unseen');
+          } else {
+            imgEl.style.cursor = 'pointer';
+            imgEl.addEventListener('click', () => {
+              currentSection = secId;
+              currentIndex = i;
+              showPhoto();
+            });
+          }
+
+          const num = document.createElement('div');
+          num.className = 'grid-num' + (seen ? '' : ' unseen');
+          num.textContent = '(' + String(i + 1).padStart(2, '0') + ')';
+
+          item.appendChild(imgEl);
+          item.appendChild(num);
+          grid.appendChild(item);
+        });
+
+        block.appendChild(grid);
+        container.appendChild(block);
+      });
+
+      document.getElementById('grid-counter').textContent =
+        totalSeen + ' / ' + totalAll;
+    }
+
+    // ── Custom video player ──
+    const vid = document.getElementById('doc-video');
+    const playBtn = document.getElementById('doc-play-btn');
+    const playCtr = document.getElementById('doc-play-center');
+    const fill = document.getElementById('doc-progress-fill');
+    const timeEl = document.getElementById('doc-time');
+    const progressWrap = document.getElementById('doc-progress-wrap');
+    const docPlayer = document.getElementById('doc-player');
+
+    function fmtTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return m + ':' + String(sec).padStart(2, '0');
+    }
+    const PLAY_SVG  = '<polygon points="6,3 20,12 6,21" fill="currentColor"/>';
+    const PAUSE_SVG = '<rect x="5" y="3" width="4" height="18" fill="currentColor"/><rect x="15" y="3" width="4" height="18" fill="currentColor"/>';
+
+    function setIcons(playing) {
+      const inner = playing ? PAUSE_SVG : PLAY_SVG;
+      document.getElementById('icon-center').innerHTML = inner;
+      document.getElementById('icon-bar').innerHTML = inner;
+    }
+
+    function docToggle() {
+      if (vid.paused) {
+        vid.play();
+        setIcons(true);
+        docPlayer.classList.remove('paused');
+      } else {
+        vid.pause();
+        setIcons(false);
+        docPlayer.classList.add('paused');
+      }
+    }
+    function docFullscreen(e) {
+      if (e) e.stopPropagation();
+      if (isFullscreen()) {
+        if (document.exitFullscreen) document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      } else {
+        if (docPlayer.requestFullscreen) docPlayer.requestFullscreen();
+        else if (docPlayer.webkitRequestFullscreen) docPlayer.webkitRequestFullscreen();
+      }
+    }
+    // Play button follows mouse + idle hide in fullscreen
+    let idleTimer = null;
+    function isFullscreen() {
+      return !!(document.fullscreenElement || document.webkitFullscreenElement);
+    }
+    function resetIdle() {
+      docPlayer.classList.remove('idle');
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => docPlayer.classList.add('idle'), 1500);
+    }
+    docPlayer.addEventListener('mousemove', e => {
+      const r = docPlayer.getBoundingClientRect();
+      playCtr.style.left = (e.clientX - r.left) + 'px';
+      playCtr.style.top  = (e.clientY - r.top)  + 'px';
+      resetIdle();
+    });
+    docPlayer.addEventListener('mouseenter', resetIdle);
+    docPlayer.addEventListener('mouseleave', () => { clearTimeout(idleTimer); docPlayer.classList.remove('idle'); });
+    const EXPAND_ICON   = '<path d="M3 3h6v2H5v4H3V3zm12 0h6v6h-2V5h-4V3zM3 15h2v4h4v2H3v-6zm16 4h-4v2h6v-6h-2v4z"/>';
+    const COMPRESS_ICON = '<path d="M8 3v2H5v3H3V3h5zm8 0h5v5h-2V5h-3V3zM3 16h2v3h3v2H3v-5zm13 3h3v-3h2v5h-5v-2z"/>';
+
+    function updateFsIcon() {
+      const svgs = document.querySelectorAll('#doc-player .doc-btn svg');
+      const fsBtn = svgs[svgs.length - 1];
+      if (fsBtn) fsBtn.innerHTML = isFullscreen() ? COMPRESS_ICON : EXPAND_ICON;
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!isFullscreen()) { clearTimeout(idleTimer); docPlayer.classList.remove('idle'); }
+      else resetIdle();
+      updateFsIcon();
+    });
+    document.addEventListener('webkitfullscreenchange', () => {
+      if (!isFullscreen()) { clearTimeout(idleTimer); docPlayer.classList.remove('idle'); }
+      else resetIdle();
+      updateFsIcon();
+    });
+
+    vid.addEventListener('click', docToggle);
+    vid.addEventListener('timeupdate', () => {
+      if (!vid.duration) return;
+      fill.style.width = (vid.currentTime / vid.duration * 100) + '%';
+      timeEl.textContent = fmtTime(vid.currentTime) + ' / ' + fmtTime(vid.duration);
+    });
+    vid.addEventListener('ended', () => {
+      setIcons(false);
+      docPlayer.classList.add('paused');
+    });
+    progressWrap.addEventListener('click', e => {
+      e.stopPropagation();
+      const r = progressWrap.getBoundingClientRect();
+      vid.currentTime = ((e.clientX - r.left) / r.width) * vid.duration;
+    });
+
+    // Hide floating play icon when hovering the controls bar
+    const docOverlay = docPlayer.querySelector('.doc-overlay');
+    docOverlay.addEventListener('mouseenter', () => docPlayer.classList.add('controls-hover'));
+    docOverlay.addEventListener('mouseleave', () => docPlayer.classList.remove('controls-hover'));
+
+    // Keyboard navigation
+    document.addEventListener('keydown', e => {
+      const photoOn = document.getElementById('view-photo').classList.contains('active');
+      const gridOn  = document.getElementById('view-grid').classList.contains('active');
+      if (photoOn) {
+        if (e.key === 'ArrowRight') photoNext();
+        else if (e.key === 'ArrowLeft') photoPrev();
+        else if (e.key === 'Escape') exitViewer();
+      }
+      if (gridOn && e.key === 'Escape') exitViewer();
+    });
+  </script>
+</body>
+</html>
