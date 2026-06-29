@@ -206,7 +206,7 @@
       z-index: 5;
     }
     .viewer-img-wrap img {
-      max-width: 62vw;
+      max-width: min(62vw, 900px);
       max-height: 70vh;
       object-fit: contain;
       display: block;
@@ -262,6 +262,9 @@
       padding: 20px 28px 90px;
       position: relative;
       z-index: 5;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
     }
     .grid-scroll::-webkit-scrollbar { width: 3px; }
     .grid-scroll::-webkit-scrollbar-thumb { background: rgba(232,0,28,0.3); border-radius: 2px; }
@@ -348,7 +351,7 @@
     /* Container that wraps video + overlay controls */
     .doc-player {
       position: relative;
-      max-width: 78vw;
+      max-width: min(78vw, 1100px);
       max-height: 78vh;
       display: flex;
       align-items: center;
@@ -356,8 +359,8 @@
     }
     .doc-player video {
       display: block;
-      width: 78vw;
-      max-width: 78vw;
+      width: min(78vw, 1100px);
+      max-width: min(78vw, 1100px);
       max-height: 78vh;
       object-fit: cover;
       cursor: pointer;
